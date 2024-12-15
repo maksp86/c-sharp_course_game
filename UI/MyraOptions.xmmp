@@ -1,0 +1,78 @@
+<Project StylesheetPath="Resources\ui_stylesheet.xmms">
+  <Project.ExportOptions Namespace="JABEUP_Game.UI.MyraOptions" Class="OptionsLayout" OutputPath="E:\Projects\JABEUP_Game\UI\MyraOptions" />
+  <Panel>
+    <VerticalStackPanel VerticalAlignment="Center">
+      <Label Text="Options" TextAlign="Center" HorizontalAlignment="Center" />
+      <TabControl HorizontalAlignment="Stretch">
+        <TabItem Text="Music" Id="musicSettings">
+          <Grid RowSpacing="10">
+            <Grid.DefaultRowProportion Type="Auto" />
+            <Grid.ColumnsProportions>
+              <Proportion Type="Part" />
+              <Proportion Type="Part" Value="2" />
+              <Proportion Type="Part" Value="2" />
+              <Proportion Type="Part" />
+            </Grid.ColumnsProportions>
+            <Label Text="Sound volume:" Grid.Column="1" />
+            <HorizontalSlider VerticalAlignment="Center" MouseCursor="Hand" Id="soundVolumeSlider" Grid.Column="2" />
+            <Label Text="Music volume:" Grid.Column="1" Grid.Row="1" />
+            <HorizontalSlider VerticalAlignment="Center" MouseCursor="Hand" Id="musicVolumeSlider" Grid.Column="2" Grid.Row="1" />
+          </Grid>
+        </TabItem>
+        <TabItem Text="Controls" Id="controlSettings">
+          <Grid RowSpacing="10" Id="bindChangeButtonsGrid">
+            <Grid.DefaultRowProportion Type="Auto" />
+            <Grid.ColumnsProportions>
+              <Proportion Type="Part" />
+              <Proportion Type="Part" Value="2" />
+              <Proportion Type="Part" Value="2" />
+              <Proportion Type="Part" />
+            </Grid.ColumnsProportions>
+            <Label Text="Movement:" Grid.Column="1" />
+            <Label Text="Up:" Grid.Column="1" Grid.Row="1" />
+            <Button MouseCursor="Hand" Id="bindChangeButton_Up" Grid.Column="2" Grid.Row="1">
+              <Label Text="W (change)" />
+            </Button>
+            <Label Text="Down:" Grid.Column="1" Grid.Row="2" />
+            <Button MouseCursor="Hand" Id="bindChangeButton_Down" Grid.Column="2" Grid.Row="2">
+              <Label Text="S (change)" />
+            </Button>
+            <Label Text="Left:" Grid.Column="1" Grid.Row="3" />
+            <Button MouseCursor="Hand" Id="bindChangeButton_Left" Grid.Column="2" Grid.Row="3">
+              <Label Text="A (change)" />
+            </Button>
+            <Label Text="Right:" Grid.Column="1" Grid.Row="4" />
+            <Button MouseCursor="Hand" Id="bindChangeButton_Right" Grid.Column="2" Grid.Row="4">
+              <Label Text="D (change)" />
+            </Button>
+            <Label Text="Jump:" Grid.Column="1" Grid.Row="5" />
+            <Button MouseCursor="Hand" Id="bindChangeButton_Jump" Grid.Column="2" Grid.Row="5">
+              <Label Text="Space (change)" />
+            </Button>
+            <Label Text="Actions:" Grid.Column="1" Grid.Row="6" />
+            <Label Text="Attack:" Grid.Column="1" Grid.Row="7" />
+            <Button MouseCursor="Hand" Id="bindChangeButton_Attack" Grid.Column="2" Grid.Row="7">
+              <Label Text="LCtrl (change)" />
+            </Button>
+            <Label Text="Defend:" Grid.Column="1" Grid.Row="8" />
+            <Button MouseCursor="Hand" Id="bindChangeButton_Defend" Grid.Column="2" Grid.Row="8">
+              <Label Text="LShift (change)" />
+            </Button>
+          </Grid>
+        </TabItem>
+      </TabControl>
+      <Label Text="Saved!" TextAlign="Center" Margin="0, 20, 0, 0" HorizontalAlignment="Center" Visible="False" Id="textSaved" />
+    </VerticalStackPanel>
+    <HorizontalStackPanel Spacing="30" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0, 0, 0, 10">
+      <Button MouseCursor="Hand" Id="backButton">
+        <Label Text="Back" />
+      </Button>
+      <Button MouseCursor="Hand" Id="saveButton">
+        <Label Text="Save" />
+      </Button>
+    </HorizontalStackPanel>
+    <Window Title="Key bind" DragDirection="None" CloseKey="None" Left="433" Top="415" MaxWidth="600" Id="keyBindWindow">
+      <Label Text="Press a keyboard button for {} or Escape to cancel" Wrap="True" Margin="0, 10" HorizontalAlignment="Center" Id="keyBindWindowText" />
+    </Window>
+  </Panel>
+</Project>

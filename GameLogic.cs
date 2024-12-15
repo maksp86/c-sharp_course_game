@@ -1,7 +1,10 @@
 ﻿using JABEUP_Game.Game;
+using JABEUP_Game.Game.Controller;
+using JABEUP_Game.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Myra;
 using System;
 
 namespace JABEUP_Game
@@ -12,18 +15,50 @@ namespace JABEUP_Game
 		private SpriteBatch _spriteBatch;
 		private KeyboardState keyboardState;
 
+		GameStateModel _gameStateModel;
 		GameEnvironment _environment;
+		GameMenu _gameMenu;
+
+		SaveController _saveEngine;
+
+		public static readonly Rectangle BaseViewPort = new Rectangle(0, 0, 1280, 720);
+		Vector2 ScaleVector = Vector2.One;
 
 		public GameLogic()
 		{
-			_graphics = new GraphicsDeviceManager(this);
-			_graphics.PreferredBackBufferWidth = 1280;
-			_graphics.PreferredBackBufferHeight = 720;
+			this.Exiting += GameLogic_Exiting;
+			_graphics = new GraphicsDeviceManager(this)
+			{
+				PreferredBackBufferWidth = BaseViewPort.Width,
+				PreferredBackBufferHeight = BaseViewPort.Height
+			};
 
-			IsMouseVisible = false;
-			Window.AllowUserResizing = false;
+			IsMouseVisible = true;
+			Window.AllowUserResizing = true;
 			Window.ClientSizeChanged += OnResize;
-			_environment = new GameEnvironment(Services, new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight));
+
+			MyraEnvironment.Game = this;
+
+			_saveEngine = new SaveController();
+			_gameStateModel = new GameStateModel();
+			_environment = new GameEnvironment(Services, _saveEngine);
+			_gameMenu = new GameMenu(_gameStateModel, _saveEngine);
+
+#if DEBUG
+			_gameStateModel.SetGameState(this, GameState.Game);
+#endif
+		}
+
+		private void UpdateHighScore()
+		{
+			if (_saveEngine.CurrentData.HighScore < _environment.GameScore)
+				_saveEngine.CurrentData.HighScore = _environment.GameScore;
+		}
+
+		private void GameLogic_Exiting(object sender, EventArgs e)
+		{
+			UpdateHighScore();
+			_saveEngine.Save();
 		}
 
 		private void OnResize(object sender, EventArgs e)
@@ -34,7 +69,8 @@ namespace JABEUP_Game
 				_graphics.PreferredBackBufferHeight = _graphics.GraphicsDevice.Viewport.Height;
 				_graphics.PreferredBackBufferWidth = (int)(_graphics.PreferredBackBufferHeight / 9.0 * 16.0);
 				_graphics.ApplyChanges();
-				_environment.SetViewPort(new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight));
+
+				ScaleVector = new Vector2((float)_graphics.PreferredBackBufferWidth / BaseViewPort.Width, (float)_graphics.PreferredBackBufferHeight / BaseViewPort.Height);
 			}
 		}
 
@@ -47,20 +83,46 @@ namespace JABEUP_Game
 			_environment.Initialize();
 		}
 
+#if DEBUG
+		public static Texture2D DebugRectangle;
+#endif
+
 		protected override void LoadContent()
 		{
+			base.LoadContent();
+
+			_saveEngine.Load();
+
 			_spriteBatch = new SpriteBatch(GraphicsDevice);
+
+#if DEBUG
+			DebugRectangle = new Texture2D(GraphicsDevice, 1, 1);
+			DebugRectangle.SetData(new[] { Color.Green });
+#endif
+
 			_environment.LoadContent();
+			_gameMenu.LoadContent(null);
 		}
 
 		protected override void Update(GameTime gameTime)
 		{
 			keyboardState = Keyboard.GetState();
 
-			if (keyboardState.IsKeyDown(Keys.Escape))
-				Exit();
+			switch (_gameStateModel.GameState)
+			{
+				case GameState.Menu:
+				case GameState.PauseMenu:
+					_gameMenu.Update(gameTime, keyboardState); break;
+				case GameState.Game:
+					if (keyboardState.IsKeyDown(Keys.Escape))
+					{
+						UpdateHighScore();
+						_gameStateModel.SetGameState(this, GameState.PauseMenu);
+					}
+					_environment.Update(gameTime, keyboardState);
+					break;
 
-			_environment.Update(gameTime, keyboardState);
+			}
 
 			base.Update(gameTime);
 		}
@@ -71,7 +133,18 @@ namespace JABEUP_Game
 
 			_spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-			_environment.Draw(gameTime, _spriteBatch);
+			switch (_gameStateModel.GameState)
+			{
+				case GameState.PauseMenu:
+				case GameState.Menu:
+					_gameMenu.Draw(gameTime, _spriteBatch, ScaleVector, 0f);
+					break;
+
+				case GameState.Game:
+					_environment.Draw(gameTime, _spriteBatch, ScaleVector);
+					break;
+
+			}
 
 			_spriteBatch.End();
 

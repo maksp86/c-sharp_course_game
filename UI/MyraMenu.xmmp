@@ -1,0 +1,21 @@
+<Project StylesheetPath="Resources\ui_stylesheet.xmms">
+  <Project.ExportOptions Namespace="JABEUP_Game.UI.MyraMenu" Class="MenuLayout" OutputPath="E:\Projects\JABEUP_Game\UI\MyraMenu" />
+  <Panel>
+    <Label Text="Paused" TextAlign="Center" Margin="0, 30, 0, 0" HorizontalAlignment="Center" Visible="False" Id="pausedText" />
+    <VerticalStackPanel Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <Label Text="JABEUP" HorizontalAlignment="Center" />
+      <Label Text="Just Another Beat`Em Up" Margin="0, 0, 0, 10" HorizontalAlignment="Center" />
+      <Button Margin="0, 0, 0, 20" HorizontalAlignment="Center" Id="playButton">
+        <Label Text="Play" />
+      </Button>
+      <Button HorizontalAlignment="Center" Id="optionsButton">
+        <Label Text="Options" />
+      </Button>
+    </VerticalStackPanel>
+    <Button Margin="0, 0, 0, 10" HorizontalAlignment="Center" VerticalAlignment="Bottom" Id="exitButton">
+      <Label Text="Exit" />
+    </Button>
+    <Label Text="authorText" TextAlign="Right" Margin="0, 0, 15, 15" HorizontalAlignment="Right" VerticalAlignment="Bottom" Id="authorText" />
+    <Label Text="High score:" Margin="15, 0, 0, 15" VerticalAlignment="Bottom" Visible="False" Id="hiscoreText" />
+  </Panel>
+</Project>
