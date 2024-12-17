@@ -18,6 +18,8 @@ namespace JABEUP_Game.UI
 {
 	public class GameMenu : IDrawableGameEntity
 	{
+		private string[] randomTexts = new string[] { "Now with sound!", "Better than Minecraft!", "As seen on TikTok!", "Family frienly!", "Beat`em up!" };
+
 		private MenuLayout _menuLayout;
 		private OptionsLayout _optionsLayout;
 		private DeathScreenLayout _deathScreenLayout;
@@ -26,6 +28,10 @@ namespace JABEUP_Game.UI
 		TimeSpan _hideTextTime = TimeSpan.Zero;
 		GameStateController _gameStateModel;
 		SaveController _saveEngine;
+
+		bool animationDirection = false;
+		float animationValue = 0f;
+		const float animationSpeed = 0.02f;
 
 		public GameMenu(GameStateController gameStateModel, SaveController saveEngine)
 		{
@@ -49,14 +55,25 @@ namespace JABEUP_Game.UI
 					playButtonLabel.Text = "Resume";
 					exitButtonLabel.Text = "Go to menu";
 					_menuLayout.pausedText.Visible = true;
+					_menuLayout.randomText.Visible = false;
 					break;
 				case GameState.DeadMenu:
 					_deathScreenLayout.scoreText.Text = "Your score: " + _gameStateModel.Score;
 					_desktop.Root = _deathScreenLayout;
 					break;
+
+				case GameState.Menu:
+					playButtonLabel.Text = "Play";
+					exitButtonLabel.Text = "Exit";
+					_menuLayout.randomText.Visible = true;
+					_menuLayout.randomText.Text = randomTexts[Random.Shared.Next(randomTexts.Length)];
+					_menuLayout.pausedText.Visible = false;
+					break;
+
 				default:
 					playButtonLabel.Text = "Play";
 					exitButtonLabel.Text = "Exit";
+					_menuLayout.randomText.Visible = false;
 					_menuLayout.pausedText.Visible = false;
 					break;
 			}
@@ -64,6 +81,36 @@ namespace JABEUP_Game.UI
 
 		public void Draw(GameTime gameTime, SpriteBatch spriteBatch, Vector2 scaleVector, float cameraOffsetX)
 		{
+			if (_gameStateModel.GameState == GameState.Menu)
+			{
+				Vector2 randomTextPos = new Vector2(GameLogic.BaseViewPort.Width * 0.65f, GameLogic.BaseViewPort.Height * 0.3f) * scaleVector;
+
+
+				if (animationDirection)
+				{
+					if (animationValue < 1f)
+						animationValue += animationSpeed;
+					else animationDirection = false;
+				}
+				else
+				{
+					if (animationValue > 0f)
+						animationValue -= animationSpeed;
+					else animationDirection = true;
+				}
+				animationValue = Math.Clamp(animationValue, 0f, 1f);
+				
+				Vector2 randomTextScale = new Vector2(0.8f, 0.8f) + (new Vector2(0.25f, 0.25f) * animationValue);
+				if (scaleVector.X < 1)
+					randomTextScale *= scaleVector;
+
+				_menuLayout.randomText.Top = (int)randomTextPos.Y;
+				_menuLayout.randomText.Left = (int)randomTextPos.X;
+				_menuLayout.randomText.Scale = randomTextScale;
+				_menuLayout.randomText.Rotation = 15 + animationValue * 15;
+
+			}
+
 			_desktop.Render();
 		}
 

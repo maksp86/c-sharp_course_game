@@ -2,6 +2,7 @@
 using JABEUP_Game.Game.Controller;
 using JABEUP_Game.UI;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Myra;
@@ -19,7 +20,7 @@ namespace JABEUP_Game
 
 		public static Texture2D DefaultRectangle;
 
-		GameStateController _gameStateModel;
+		GameStateController _gameStateController;
 		GameEnvironment _environment;
 		GameMenu _gameMenu;
 
@@ -30,6 +31,10 @@ namespace JABEUP_Game
 
 		public static readonly Rectangle BaseViewPort = new Rectangle(0, 0, 1280, 720);
 		Vector2 ScaleVector = Vector2.One;
+
+		private bool IsFullScreen;
+		private Viewport sizeBeforeFullscreen;
+		TimeSpan lastFullscreenChange = TimeSpan.Zero;
 
 		public GameLogic()
 		{
@@ -47,15 +52,15 @@ namespace JABEUP_Game
 			MyraEnvironment.Game = this;
 
 			_saveEngine = new SaveController();
-			_gameStateModel = new GameStateController();
-			_gameStateModel.StateChanged += OnGameStateChanged;
-			_environment = new GameEnvironment(Services, _saveEngine, _gameStateModel);
-			_gameMenu = new GameMenu(_gameStateModel, _saveEngine);
+			_gameStateController = new GameStateController();
+			_gameStateController.StateChanged += OnGameStateChanged;
+			_environment = new GameEnvironment(Services, _saveEngine, _gameStateController);
+			_gameMenu = new GameMenu(_gameStateController, _saveEngine);
 		}
 
 		private void OnGameStateChanged(object sender, GameStateChangedEventArgs e)
 		{
-			IsMouseVisible = e.newValue == GameState.Game;
+			IsMouseVisible = e.newValue != GameState.Game;
 			switch (e.newValue)
 			{
 				case GameState.Game:
@@ -76,8 +81,8 @@ namespace JABEUP_Game
 
 		private void UpdateHighScore()
 		{
-			if (_saveEngine.CurrentData.HighScore < _gameStateModel.Score)
-				_saveEngine.CurrentData.HighScore = _gameStateModel.Score;
+			if (_saveEngine.CurrentData.HighScore < _gameStateController.Score)
+				_saveEngine.CurrentData.HighScore = _gameStateController.Score;
 		}
 
 		private void GameLogic_Exiting(object sender, EventArgs e)
@@ -108,6 +113,7 @@ namespace JABEUP_Game
 			_environment.Initialize();
 
 			Window.Title = BaseName;
+			_gameStateController.SetGameState(this, GameState.Menu);
 		}
 
 		protected override void LoadContent()
@@ -130,17 +136,43 @@ namespace JABEUP_Game
 		{
 			keyboardState = Keyboard.GetState();
 
-			switch (_gameStateModel.GameState)
+			if (keyboardState.IsKeyDown(Keys.F11) && gameTime.TotalGameTime.Subtract(lastFullscreenChange).TotalSeconds > 0.5d)
+			{
+				if (IsFullScreen)
+				{
+					_graphics.GraphicsDevice.Viewport = sizeBeforeFullscreen;
+					Window.IsBorderless = false;
+				}
+				else
+				{
+					sizeBeforeFullscreen = _graphics.GraphicsDevice.Viewport;
+					Window.IsBorderless = true;
+					Viewport newViewPort = _graphics.GraphicsDevice.Viewport;
+
+					newViewPort.Width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+					newViewPort.Height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+
+					_graphics.GraphicsDevice.Viewport = newViewPort;
+
+				}
+				OnResize(null, null);
+				IsFullScreen = !IsFullScreen;
+				lastFullscreenChange = gameTime.TotalGameTime;
+			}
+
+
+			switch (_gameStateController.GameState)
 			{
 				case GameState.Menu:
 				case GameState.PauseMenu:
 				case GameState.DeadMenu:
-					_gameMenu.Update(gameTime, keyboardState, null); break;
+					_gameMenu.Update(gameTime, keyboardState, null);
+					break;
 				case GameState.Game:
 					if (keyboardState.IsKeyDown(Keys.Escape))
 					{
 						UpdateHighScore();
-						_gameStateModel.SetGameState(this, GameState.PauseMenu);
+						_gameStateController.SetGameState(this, GameState.PauseMenu);
 					}
 					_environment.Update(gameTime, keyboardState);
 					break;
@@ -154,7 +186,7 @@ namespace JABEUP_Game
 		{
 			GraphicsDevice.Clear(Color.Black);
 
-			switch (_gameStateModel.GameState)
+			switch (_gameStateController.GameState)
 			{
 				case GameState.Menu:
 				case GameState.PauseMenu:

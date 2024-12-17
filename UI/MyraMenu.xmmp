@@ -17,5 +17,6 @@
     </Button>
     <Label Text="authorText" TextAlign="Right" Margin="0, 0, 15, 15" HorizontalAlignment="Right" VerticalAlignment="Bottom" Id="authorText" />
     <Label Text="High score:" Margin="15, 0, 0, 15" VerticalAlignment="Bottom" Visible="False" Id="hiscoreText" />
+    <Label Text="Now in color!" Visible="False" Scale="1.3, 1.3" Rotation="25" Id="randomText" />
   </Panel>
 </Project>

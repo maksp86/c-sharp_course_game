@@ -4,6 +4,7 @@ using JABEUP_Game.Game.Model;
 using JABEUP_Game.Game.Player;
 using JABEUP_Game.Game.View;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -22,6 +23,9 @@ namespace JABEUP_Game.Game
 
 		EnvironmentRenderer environmentRenderer;
 		EnvironmentSafeZoneController safeZoneController;
+
+		SoundEffect backgroundMusic;
+		SoundController _soundController;
 
 		GameStateController _gameStateModel;
 
@@ -42,6 +46,7 @@ namespace JABEUP_Game.Game
 			collaidableGameEntities = new List<ICollaidableGameEntity>();
 			_saveController = saveController;
 			_gameStateModel = gameState;
+			_soundController = new SoundController(_saveController);
 
 			player = new PlayerClass(_saveController);
 			player.OnDead += OnEntityDead;
@@ -60,7 +65,11 @@ namespace JABEUP_Game.Game
 				&& e.newValue == GameState.Game)
 			{
 				Initialize();
+				_soundController.PlaySound(backgroundMusic, SoundController.SoundChannels.Music);
 			}
+
+			if (e.newValue == GameState.PauseMenu || e.newValue == GameState.Game)
+				_soundController.SetPauseSound(SoundController.SoundChannels.Music, e.newValue != GameState.Game);
 		}
 
 		private void OnEntityDead(object sender, EventArgs e)
@@ -165,6 +174,7 @@ namespace JABEUP_Game.Game
 			environmentRenderer.LoadContent(contentManager);
 			player.LoadContent(contentManager);
 			gameFont = contentManager.Load<SpriteFont>("GUI/Commodore64Font");
+			backgroundMusic = contentManager.Load<SoundEffect>("Sound/Music");
 		}
 
 		public void Draw(GameTime gameTime, SpriteBatch spriteBatch, Vector2 scaleVector)

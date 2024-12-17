@@ -15,6 +15,7 @@ namespace JABEUP_Game.Game.Controller
 
 	public enum GameState
 	{
+		None,
 		Menu,
 		PauseMenu,
 		DeadMenu,
@@ -28,9 +29,9 @@ namespace JABEUP_Game.Game.Controller
 
 		public GameState GameState => _gameState;
 #if DEBUG
-		private GameState _gameState = GameState.Menu;
+		private GameState _gameState = GameState.None;
 #else
-		private GameState _gameState = GameState.Menu;
+		private GameState _gameState = GameState.None;
 #endif
 
 		public long Score => _score + _enemyScore;

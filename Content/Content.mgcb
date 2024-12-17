@@ -308,6 +308,12 @@
 /processorParam:TextureFormat=Color
 /build:Knight_1/Walk.png
 
+#begin Sound/Music.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sound/Music.wav
+
 #begin Zombie/Attack.png
 /importer:TextureImporter
 /processor:TextureProcessor
