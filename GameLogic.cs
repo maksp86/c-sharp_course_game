@@ -11,6 +11,8 @@ namespace JABEUP_Game
 {
 	public class GameLogic : Microsoft.Xna.Framework.Game
 	{
+		public static readonly string BaseName = "JABEUP";
+
 		private GraphicsDeviceManager _graphics;
 		private SpriteBatch _spriteBatch;
 		private KeyboardState keyboardState;
@@ -46,8 +48,30 @@ namespace JABEUP_Game
 
 			_saveEngine = new SaveController();
 			_gameStateModel = new GameStateController();
+			_gameStateModel.StateChanged += OnGameStateChanged;
 			_environment = new GameEnvironment(Services, _saveEngine, _gameStateModel);
 			_gameMenu = new GameMenu(_gameStateModel, _saveEngine);
+		}
+
+		private void OnGameStateChanged(object sender, GameStateChangedEventArgs e)
+		{
+			IsMouseVisible = e.newValue == GameState.Game;
+			switch (e.newValue)
+			{
+				case GameState.Game:
+					Window.Title = BaseName + " - Playing";
+					break;
+				case GameState.DeadMenu:
+					Window.Title = BaseName + " - Dead";
+					break;
+				case GameState.PauseMenu:
+					Window.Title = BaseName + " - Paused";
+					break;
+
+				default:
+					Window.Title = BaseName;
+					break;
+			}
 		}
 
 		private void UpdateHighScore()
@@ -82,6 +106,8 @@ namespace JABEUP_Game
 			_graphics.ApplyChanges();
 
 			_environment.Initialize();
+
+			Window.Title = BaseName;
 		}
 
 		protected override void LoadContent()

@@ -20,7 +20,7 @@ namespace JABEUP_Game.Game.Enemy
 
 		public override AliveEntityType EntityType => AliveEntityType.Mob;
 		public override ColliderType ColliderType => ColliderType.Strong;
-		public override int MaxHP => 100;
+		public override int MaxHP => 130;
 
 		private BoundingBox target;
 		private BoundingBox attackCollider;

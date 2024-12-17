@@ -31,7 +31,7 @@ namespace JABEUP_Game.UI.MyraDeathScreen
 			label1.TextColor = ColorStorage.CreateColor(254, 57, 48, 255);
 			label1.Margin = new Thickness(0, 0, 0, 20);
 			label1.HorizontalAlignment = Myra.Graphics2D.UI.HorizontalAlignment.Center;
-			label1.Scale = new Vector2();
+			label1.Scale = new Vector2(2,2);
 
 			scoreText = new Label();
 			scoreText.Text = "Your score: ";
@@ -65,8 +65,6 @@ namespace JABEUP_Game.UI.MyraDeathScreen
 			verticalStackPanel1.Widgets.Add(respawnButton);
 			verticalStackPanel1.Widgets.Add(menuButton);
 
-			
-			Background = new SolidBrush("#00000000");
 			Widgets.Add(verticalStackPanel1);
 		}
 

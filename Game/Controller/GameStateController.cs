@@ -28,7 +28,7 @@ namespace JABEUP_Game.Game.Controller
 
 		public GameState GameState => _gameState;
 #if DEBUG
-		private GameState _gameState = GameState.Game;
+		private GameState _gameState = GameState.Menu;
 #else
 		private GameState _gameState = GameState.Menu;
 #endif

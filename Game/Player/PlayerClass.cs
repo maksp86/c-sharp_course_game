@@ -18,13 +18,14 @@ namespace JABEUP_Game.Game.Player
 
 		public override AliveEntityType EntityType => AliveEntityType.Player;
 		public override ColliderType ColliderType => ColliderType.Strong;
-		public override int MaxHP => 50;
+		public override int MaxHP => 500;
 
 		private BoundingBox swordCollider;
 
 		private bool isHurt;
 		private TimeSpan hurtEndTime;
 
+		private int nextDamage;
 		private bool isDefending;
 		private bool isAttacking;
 		private bool attackHappened;
@@ -129,7 +130,7 @@ namespace JABEUP_Game.Game.Player
 
 					foreach (AliveGameEntity aliveEntity in collaidables.Where(c => c != this && c is AliveGameEntity && (c as AliveGameEntity).Collider.Intersects(swordCollider)))
 					{
-						aliveEntity.TakeDamage(50);
+						aliveEntity.TakeDamage(nextDamage);
 					}
 				}
 				if (gameTime.TotalGameTime >= attackEndTime)
@@ -147,13 +148,20 @@ namespace JABEUP_Game.Game.Player
 			{
 				isAttacking = true;
 				if (_velocity.X != 0 || _velocity.Y != 0)
+				{
 					attackAnimation = animationRunAttack;
+					nextDamage = 60;
+				}
 				else if (isDefending)
+				{
 					attackAnimation = animationAttackDefend;
+					nextDamage = 40;
+				}
 				else
 				{
 					_velocity.X += 50;
 					attackAnimation = animationAttack;
+					nextDamage = 50;
 				}
 				attackEndTime = gameTime.TotalGameTime + TimeSpan.FromSeconds(attackAnimation.FrameTime * attackAnimation.FrameCount);
 			}

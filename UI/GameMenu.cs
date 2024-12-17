@@ -52,6 +52,7 @@ namespace JABEUP_Game.UI
 					break;
 				case GameState.DeadMenu:
 					_deathScreenLayout.scoreText.Text = "Your score: " + _gameStateModel.Score;
+					_desktop.Root = _deathScreenLayout;
 					break;
 				default:
 					playButtonLabel.Text = "Play";
@@ -110,6 +111,7 @@ namespace JABEUP_Game.UI
 			};
 
 			_deathScreenLayout.respawnButton.Click += (s, e) => { _gameStateModel.SetGameState(this, GameState.Game); };
+			_deathScreenLayout.menuButton.Click += (s, e) => { _desktop.Root = _menuLayout; };
 
 			_menuLayout.playButton.Click += (s, e) => { _gameStateModel.SetGameState(this, GameState.Game); };
 			_menuLayout.exitButton.Click += (s, e) =>
