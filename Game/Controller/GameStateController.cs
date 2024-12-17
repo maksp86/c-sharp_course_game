@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using JABEUP_Game.Game.Model;
+using System;
 
-namespace JABEUP_Game
+namespace JABEUP_Game.Game.Controller
 {
 	public class GameStateChangedEventArgs : EventArgs
 	{
@@ -20,15 +17,40 @@ namespace JABEUP_Game
 	{
 		Menu,
 		PauseMenu,
+		DeadMenu,
 		Game
 	}
 
-	public class GameStateModel
+	public class GameStateController
 	{
 		public event EventHandler<GameStateChangedEventArgs> StateChanged;
 
+
 		public GameState GameState => _gameState;
+#if DEBUG
+		private GameState _gameState = GameState.Game;
+#else
 		private GameState _gameState = GameState.Menu;
+#endif
+
+		public long Score => _score + _enemyScore;
+		private long _score, _enemyScore;
+
+		public void UpdateScore(float cameraOffsetX)
+		{
+			_score = (long)Math.Ceiling(cameraOffsetX / (GameLogic.BaseViewPort.Width / 5f));
+		}
+
+		public void AddEnemyScore(AliveGameEntity killedEntity)
+		{
+			_enemyScore += killedEntity.MaxHP / 5;
+		}
+
+		public void ClearScore()
+		{
+			_score = 0;
+			_enemyScore = 0;
+		}
 
 		public void SetGameState(object sender, GameState gameState)
 		{

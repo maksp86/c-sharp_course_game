@@ -1,16 +1,16 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using System;
-using Myra.Graphics2D.TextureAtlases;
-using Myra.Graphics2D.UI;
-using Myra.Graphics2D.UI.Styles;
-using Microsoft.Xna.Framework.Content;
-using AssetManagementBase;
-using Myra;
+﻿using AssetManagementBase;
+using JABEUP_Game.Game.Controller;
+using JABEUP_Game.UI.MyraDeathScreen;
 using JABEUP_Game.UI.MyraMenu;
 using JABEUP_Game.UI.MyraOptions;
-using JABEUP_Game.Game.Controller;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using Myra;
+using Myra.Graphics2D.UI;
+using Myra.Graphics2D.UI.Styles;
+using System;
 using System.Reflection;
 
 
@@ -20,13 +20,14 @@ namespace JABEUP_Game.UI
 	{
 		private MenuLayout _menuLayout;
 		private OptionsLayout _optionsLayout;
+		private DeathScreenLayout _deathScreenLayout;
 		private Desktop _desktop;
 
 		TimeSpan _hideTextTime = TimeSpan.Zero;
-		GameStateModel _gameStateModel;
+		GameStateController _gameStateModel;
 		SaveController _saveEngine;
 
-		public GameMenu(GameStateModel gameStateModel, SaveController saveEngine)
+		public GameMenu(GameStateController gameStateModel, SaveController saveEngine)
 		{
 			_gameStateModel = gameStateModel;
 			_saveEngine = saveEngine;
@@ -35,6 +36,7 @@ namespace JABEUP_Game.UI
 		private void OnGameStateChanged(object sender, GameStateChangedEventArgs e)
 		{
 			Label playButtonLabel = _menuLayout.playButton.FindChild<Label>();
+			Label exitButtonLabel = _menuLayout.exitButton.FindChild<Label>();
 
 			switch (e.newValue)
 			{
@@ -45,10 +47,15 @@ namespace JABEUP_Game.UI
 						_menuLayout.hiscoreText.Text = "High score: " + _saveEngine.CurrentData.HighScore;
 					}
 					playButtonLabel.Text = "Resume";
+					exitButtonLabel.Text = "Go to menu";
 					_menuLayout.pausedText.Visible = true;
+					break;
+				case GameState.DeadMenu:
+					_deathScreenLayout.scoreText.Text = "Your score: " + _gameStateModel.Score;
 					break;
 				default:
 					playButtonLabel.Text = "Play";
+					exitButtonLabel.Text = "Exit";
 					_menuLayout.pausedText.Visible = false;
 					break;
 			}
@@ -59,7 +66,7 @@ namespace JABEUP_Game.UI
 			_desktop.Render();
 		}
 
-		public void Update(GameTime gameTime, KeyboardState keyboardState)
+		public void Update(GameTime gameTime, KeyboardState keyboardState, EnvironmentSafeZoneController safeZoneController)
 		{
 			if (_desktop.Root == _optionsLayout && _optionsLayout.textSaved.Visible)
 			{
@@ -93,6 +100,7 @@ namespace JABEUP_Game.UI
 
 			_menuLayout = new MenuLayout();
 			_optionsLayout = new OptionsLayout();
+			_deathScreenLayout = new DeathScreenLayout();
 
 			var textureAtlas = assetManager.LoadTextureRegionAtlas("ui_stylesheet.xmat");
 
@@ -101,8 +109,16 @@ namespace JABEUP_Game.UI
 				Root = _menuLayout
 			};
 
+			_deathScreenLayout.respawnButton.Click += (s, e) => { _gameStateModel.SetGameState(this, GameState.Game); };
+
 			_menuLayout.playButton.Click += (s, e) => { _gameStateModel.SetGameState(this, GameState.Game); };
-			_menuLayout.exitButton.Click += (s, e) => { MyraEnvironment.Game.Exit(); };
+			_menuLayout.exitButton.Click += (s, e) =>
+			{
+				if (_gameStateModel.GameState == GameState.PauseMenu)
+					_gameStateModel.SetGameState(this, GameState.Menu);
+				else if (_gameStateModel.GameState == GameState.Menu)
+					MyraEnvironment.Game.Exit();
+			};
 			_menuLayout.optionsButton.Click += (s, e) => { _desktop.Root = _optionsLayout; };
 
 			_optionsLayout.musicVolumeSlider.Value = _saveEngine.CurrentData.Options.MusicVolume;

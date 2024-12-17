@@ -1,0 +1,15 @@
+<Project StylesheetPath="Resources\ui_stylesheet.xmms">
+  <Project.ExportOptions Namespace="JABEUP_Game.UI.MyraDeathScreen" Class="DeathScreenLayout" OutputPath="E:\Projects\JABEUP_Game\UI\MyraDeathScreen" />
+  <Panel Background="#00000000">
+    <VerticalStackPanel Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <Label Text="You are dead" TextColor="#FE3930FF" Margin="0, 0, 0, 20" HorizontalAlignment="Center" Scale="2, 2" />
+      <Label Text="Your score: " Margin="0, 0, 0, 10" HorizontalAlignment="Center" Id="scoreText" />
+      <Button Margin="0, 0, 0, 40" HorizontalAlignment="Center" Id="respawnButton">
+        <Label Text="Respawn" />
+      </Button>
+      <Button HorizontalAlignment="Center" Id="menuButton">
+        <Label Text="Go to menu" />
+      </Button>
+    </VerticalStackPanel>
+  </Panel>
+</Project>

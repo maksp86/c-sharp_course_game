@@ -29,6 +29,7 @@ namespace JABEUP_Game.Game.Enemy
 		private TimeSpan hurtEndTime;
 
 		private bool isAttacking;
+		private bool attackHappened;
 		private TimeSpan attackEndTime;
 
 		private ProgressBarRenderer _healthBar;
@@ -65,12 +66,12 @@ namespace JABEUP_Game.Game.Enemy
 			target = targetCollider;
 		}
 
-		public override void Update(GameTime gameTime, KeyboardState keyboardState)
+		public override void Update(GameTime gameTime, KeyboardState keyboardState, EnvironmentSafeZoneController safeZoneController)
 		{
 			if (!IsAlive)
 				return;
 
-			if (Vector3.Distance(_position, target.Min) > (animationIdle.FrameHeight * 8))
+			if (Vector3.Distance(_position, target.Max) > (animationIdle.FrameHeight * 8))
 			{
 				int nextMove = Random.Shared.Next(-10, 10);
 				if (nextMove == 1)
@@ -78,26 +79,35 @@ namespace JABEUP_Game.Game.Enemy
 				else if (nextMove == 0)
 					_movement.Y = (float)Random.Shared.Next(-5, 5);
 			}
-			else if (!Collider.Intersects(target) || Math.Abs(_position.Y - target.Min.Y) > animationIdle.FrameHeight)
+			else
 			{
-				if (!isAttacking)
+				if ((!Collider.Intersects(target) || Math.Abs(_position.Y - target.Max.Y) > (animationIdle.FrameHeight * 1.1f)) && Vector3.Distance(_position, target.Max) > animationIdle.FrameHeight / 10)
 				{
-					if (_position.X > target.Min.X)
-						_movement.X = -1 * (float)Random.Shared.NextDouble();
-					else if (_position.X < target.Min.X)
-						_movement.X = 1 * (float)Random.Shared.NextDouble();
+					if (!isAttacking)
+					{
+						if (_position.X > target.Max.X)
+							_movement.X = -1 * (float)Random.Shared.NextDouble();
+						else if (_position.X < target.Max.X)
+							_movement.X = 1 * (float)Random.Shared.NextDouble();
 
-					if (_position.Y > target.Min.Y)
-						_movement.Y = -1 * (float)Random.Shared.NextDouble();
-					else if (_position.Y < target.Min.Y)
-						_movement.Y = 1 * (float)Random.Shared.NextDouble();
+						if (_position.Y > target.Max.Y)
+							_movement.Y = -1 * (float)Random.Shared.NextDouble();
+						else if (_position.Y < target.Max.Y)
+							_movement.Y = 1 * (float)Random.Shared.NextDouble();
+					}
+				}
+				else if (gameTime.TotalGameTime - attackEndTime > TimeSpan.FromMilliseconds(1000) && !isHurt)
+				{
+					isAttacking = true;
+					attackHappened = false;
+					attackEndTime = gameTime.TotalGameTime + TimeSpan.FromSeconds(animationAttack.FrameTime * animationAttack.FrameCount);
 				}
 			}
-			else if (gameTime.TotalGameTime - attackEndTime > TimeSpan.FromMilliseconds(1000) && !isHurt)
-			{
-				isAttacking = true;
-				attackEndTime = gameTime.TotalGameTime + TimeSpan.FromSeconds(animationAttack.FrameTime * animationAttack.FrameCount);
-			}
+
+			DoPhysics(gameTime, safeZoneController);
+
+			_collider.Min = new Vector3(animationIdle.FrameWidth * 0.2f + _position.X, _position.Y - animationIdle.FrameHeight * 1.1f, _position.Z);
+			_collider.Max = _collider.Min + new Vector3(animationIdle.FrameWidth * 0.6f, animationIdle.FrameHeight * 1.1f, 0);
 
 			if (isHurt)
 			{
@@ -124,17 +134,12 @@ namespace JABEUP_Game.Game.Enemy
 
 
 			_healthBar.UpdateValue(HP, MaxHP, new Vector3(_position.X, _position.Y - (animationIdle.FrameHeight * 2f), _position.Z));
-			_healthBar.Update(gameTime, keyboardState);
+			_healthBar.Update(gameTime, keyboardState, safeZoneController);
+			_movement = Vector2.Zero;
 		}
 
 		public override void UpdateCollisions(IEnumerable<ICollaidableGameEntity> collaidables, GameTime gameTime)
 		{
-			DoPhysics(gameTime, collaidables.Where(c => c is EnvironmentCollider).Select(c => c as EnvironmentCollider));
-			_movement = Vector2.Zero;
-
-			_collider.Min = new Vector3(animationIdle.FrameHeight * 0.2f + _position.X, _position.Y, _position.Z);
-			_collider.Max = _position + new Vector3(animationIdle.FrameHeight * 0.6f, animationIdle.FrameHeight, animationIdle.FrameHeight / 3);
-
 			PlayerClass player = collaidables
 				.Where(c => c is PlayerClass)
 				.Select(c => c as PlayerClass)
@@ -147,8 +152,9 @@ namespace JABEUP_Game.Game.Enemy
 
 			if (isAttacking)
 			{
-				if (gameTime.TotalGameTime >= attackEndTime)
+				if (!attackHappened && animationObj.FrameIndex >= (animationObj.Animation.FrameCount / 2))
 				{
+					attackHappened = true;
 					if (flip == SpriteEffects.FlipHorizontally)
 						attackCollider = new BoundingBox(new Vector3(_collider.Min.X - animationIdle.FrameHeight / 3, _collider.Min.Y, _collider.Min.Z),
 							new Vector3(_collider.Min.X, _collider.Max.Y, _collider.Max.Z));
@@ -158,7 +164,11 @@ namespace JABEUP_Game.Game.Enemy
 
 					if (player.Collider.Intersects(attackCollider))
 						player.TakeDamage(50);
+				}
+				if (gameTime.TotalGameTime >= attackEndTime)
+				{
 					isAttacking = false;
+					attackHappened = false;
 				}
 				animationObj.PlayAnimation(animationAttack);
 			}
@@ -174,25 +184,20 @@ namespace JABEUP_Game.Game.Enemy
 			Vector2 actualPos = new Vector2((_position.X - cameraOffsetX) * scaleVector.X, (_position.Y + _position.Z) * scaleVector.Y);
 			float scale = scaleVector.Y * (_position.Y / GameLogic.BaseViewPort.Height);
 
-#if DEBUG
-			//spriteBatch.Draw(
-			//	GameLogic.DebugRectangle,
-			//	new Vector2((enemyCollider.Min.X - cameraOffsetX) * scaleVector.X, (enemyCollider.Min.Y + enemyCollider.Min.Z) * scaleVector.Y),
-			//	new Rectangle(0, 0, (int)((enemyCollider.Max.X - enemyCollider.Min.X) * scale), (int)((enemyCollider.Max.Y - enemyCollider.Min.Y) * scale)),
-			//	Color.CadetBlue);
-
-			spriteBatch.Draw(
-				GameLogic.DebugRectangle,
-				new Vector2((attackCollider.Min.X - cameraOffsetX) * scaleVector.X, (attackCollider.Min.Y + attackCollider.Min.Z) * scaleVector.Y),
-				new Rectangle(0, 0, (int)((attackCollider.Max.X - attackCollider.Min.X) * scale), (int)((attackCollider.Max.Y - attackCollider.Min.Y) * scale)),
-				Color.Chocolate);
-#endif
+			if (GameLogic.DebugDraw)
+			{
+				spriteBatch.Draw(
+					GameLogic.DefaultRectangle,
+					new Vector2((attackCollider.Min.X - cameraOffsetX) * scaleVector.X, (attackCollider.Min.Y + attackCollider.Min.Z) * scaleVector.Y),
+					new Rectangle(0, 0, (int)((attackCollider.Max.X - attackCollider.Min.X) * scale), (int)((attackCollider.Max.Y - attackCollider.Min.Y) * scale)),
+					Color.Chocolate);
+			}
 
 			animationObj.Draw(gameTime, spriteBatch, actualPos, flip, scale * 1.1f);
 
 			if (IsAlive)
 			{
-				_healthBar.SetScale(scale);
+				_healthBar.SetScale(scale * 0.8f);
 				_healthBar.Draw(gameTime, spriteBatch, scaleVector, cameraOffsetX);
 			}
 
@@ -201,6 +206,7 @@ namespace JABEUP_Game.Game.Enemy
 		public override void TakeDamage(int damage)
 		{
 			base.TakeDamage(damage);
+
 			isHurt = true;
 
 			if (!IsAlive)

@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using JABEUP_Game.Game.Controller;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -17,6 +18,7 @@ namespace JABEUP_Game.Game.Model
 		public virtual AliveEntityType EntityType { get; }
 		public virtual ColliderType ColliderType { get; }
 
+		public event EventHandler OnDead;
 
 		public bool IsAlive => HP > 0;
 		public virtual int MaxHP { get; }
@@ -47,13 +49,18 @@ namespace JABEUP_Game.Game.Model
 
 		public virtual void TakeDamage(int damage)
 		{
-			if (_hp - damage < 0)
+			if (_hp == 0) return;
+
+			if (_hp - damage <= 0)
+			{
 				_hp = 0;
+				OnDead?.Invoke(this, new EventArgs());
+			}
 			else
 				_hp -= damage;
 		}
 
-		public abstract void Update(GameTime gameTime, KeyboardState keyboardState);
+		public abstract void Update(GameTime gameTime, KeyboardState keyboardState, EnvironmentSafeZoneController safeZoneController);
 
 		public abstract void UpdateCollisions(IEnumerable<ICollaidableGameEntity> collaidables, GameTime gameTime);
 
@@ -72,7 +79,7 @@ namespace JABEUP_Game.Game.Model
 		public const float MaxFallSpeed = 550.0f;
 		public const float JumpControlPower = 0.14f;
 
-		public void DoPhysics(GameTime gameTime, IEnumerable<EnvironmentCollider> environmentColliders)
+		public void DoPhysics(GameTime gameTime, EnvironmentSafeZoneController safeZoneController)
 		{
 			float elapsed = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -103,7 +110,7 @@ namespace JABEUP_Game.Game.Model
 			_position += _velocity * elapsed;
 			_position = new Vector3((float)Math.Round(_position.X), (float)Math.Round(_position.Y), (float)Math.Round(_position.Z));
 
-			HandleEnvironmentCollisions(environmentColliders, previousPosition);
+			HandleEnvironmentCollisions(safeZoneController, previousPosition);
 
 			if (_position.X == previousPosition.X && _movement.X == 0)
 				_velocity.X = 0;
@@ -134,23 +141,48 @@ namespace JABEUP_Game.Game.Model
 			return velocityY;
 		}
 
-		private protected virtual void HandleEnvironmentCollisions(IEnumerable<EnvironmentCollider> environmentColliders, Vector3 previousPosition)
+		private protected virtual void HandleEnvironmentCollisions(EnvironmentSafeZoneController safeZoneController, Vector3 previousPosition)
 		{
 			if (_position.Z > 0)
 				_position.Z = 0;
 
-			foreach (var collider in environmentColliders)
+			if (_position.Y > 720)
+				_position.Y = 720;
+
+			if (!safeZoneController.IsInSafeZone(Position) || (EntityType == AliveEntityType.Player && !safeZoneController.IsInSafeZone(Collider.Max)))
 			{
-				if (collider.ColliderType == ColliderType.StrongPlayer && EntityType != AliveEntityType.Player)
-					continue;
-
-				if (collider.Collider.Contains(new Vector3(_position.X, _position.Y, 0)) == ContainmentType.Contains)
-					_position = previousPosition;
-
+				_position.X = previousPosition.X;
+				_position.Y = previousPosition.Y + 2;
 			}
 
-			//if (_position.Y > 720)
-			//	_position.Y = 720;
+			//bool InInverseCollision = false;
+
+			//foreach (var collider in environmentColliders)
+			//{
+			//	if (collider.ColliderType == ColliderType.InverseStrongPlayer && EntityType != AliveEntityType.Player)
+			//		continue;
+
+			//	switch (collider.ColliderType)
+			//	{
+			//		case ColliderType.InverseStrong:
+			//		case ColliderType.InverseStrongPlayer:
+			//			if (!InInverseCollision)
+			//				InInverseCollision = collider.Collider.Contains(new Vector3(_position.X, _position.Y, 0)) == ContainmentType.Contains;
+			//			break;
+			//		case ColliderType.Strong:
+			//		case ColliderType.StrongPlayer:
+			//			if (collider.Collider.Contains(new Vector3(_position.X, _position.Y, 0)) == ContainmentType.Contains)
+			//			{
+			//				_position = previousPosition;
+			//				return;
+			//			}
+			//			break;
+			//	}
+			//}
+
+			//if (!InInverseCollision)
+			//	_position = previousPosition;
+
 			//else if (_position.Y < 480)
 			//	_position.Y = 480;
 

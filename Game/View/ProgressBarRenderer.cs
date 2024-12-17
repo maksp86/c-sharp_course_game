@@ -1,13 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+﻿using JABEUP_Game.Game.Controller;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Myra.Graphics2D.UI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace JABEUP_Game.Game.View
 {
@@ -49,78 +44,11 @@ namespace JABEUP_Game.Game.View
 		{
 			Vector2 actualPos = new Vector2((position.X - cameraOffsetX) * scaleVector.X, (position.Y + position.Z) * scaleVector.Y);
 
-			spriteBatch.Draw(background, actualPos, null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 1f);
-			spriteBatch.Draw(foreground, actualPos, innerPart, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 1f);
+			spriteBatch.Draw(background, actualPos, null, Color.White, 0, Vector2.Zero, scale * scaleVector.X, SpriteEffects.None, 1f);
+			spriteBatch.Draw(foreground, actualPos, innerPart, Color.White, 0, Vector2.Zero, scale * scaleVector.X, SpriteEffects.None, 1f);
 		}
 
-		public virtual void Update(GameTime gameTime, KeyboardState keyboardState) { }
+		public virtual void Update(GameTime gameTime, KeyboardState keyboardState, EnvironmentSafeZoneController safeZoneController) { }
 
 	}
-
-	//public class ProgressBarAnimatedRenderer : ProgressBarRenderer
-	//{
-	//	private float _targetValue;
-	//	private readonly float _animationSpeed;
-	//	private Rectangle _animationPart;
-	//	private Vector3 _animationPosition;
-	//	private Color _animationShade;
-	//	private float value;
-
-	//	public ProgressBarAnimatedRenderer(float max) : base(max)
-	//	{
-	//		_targetValue = max;
-	//		_animationSpeed = max / 10;
-	//		_animationShade = Color.DarkGray;
-	//	}
-
-	//	public override void LoadContent(ContentManager contentManager)
-	//	{
-	//		base.LoadContent(contentManager);
-	//		_animationPart = new(foreground.Width, 0, 0, foreground.Height);
-	//	}
-
-	//	public override void UpdateValue(float value, Vector3 drawPosition)
-	//	{
-	//		this.value = value;
-	//		_animationPosition = drawPosition;
-	//		innerPart.Width = (int)(currentValue / maxValue * foreground.Width);
-	//		position = drawPosition;
-	//	}
-
-	//	public override void Update(GameTime gameTime, KeyboardState keyboardState)
-	//	{
-	//		if (value == currentValue) return;
-
-	//		_targetValue = value;
-	//		int x;
-	//		float elapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
-	//		if (_targetValue < currentValue)
-	//		{
-	//			currentValue -= _animationSpeed * elapsedSeconds;
-	//			if (currentValue < _targetValue) currentValue = _targetValue;
-	//			x = (int)(_targetValue / maxValue * foreground.Width);
-	//			_animationShade = Color.Gray;
-	//		}
-	//		else
-	//		{
-	//			currentValue += _animationSpeed * elapsedSeconds;
-	//			if (currentValue > _targetValue) currentValue = _targetValue;
-	//			x = (int)(currentValue / maxValue * foreground.Width);
-	//			_animationShade = Color.DarkGray * 0.5f;
-	//		}
-
-	//		innerPart.Width = x;
-	//		_animationPart.X = x;
-	//		_animationPart.Width = (int)(Math.Abs(currentValue - _targetValue) / maxValue * foreground.Width);
-	//		_animationPosition.X = position.X + x;
-	//	}
-
-	//	public override void Draw(GameTime gameTime, SpriteBatch spriteBatch, Vector2 scaleVector, float cameraOffsetX)
-	//	{
-	//		base.Draw(gameTime, spriteBatch, scaleVector, cameraOffsetX);
-
-	//		Vector2 actualPos = new Vector2((position.X - cameraOffsetX) * scaleVector.X, (position.Y + position.Z) * scaleVector.Y);
-	//		spriteBatch.Draw(foreground, actualPos, _animationPart, _animationShade, 0, Vector2.Zero, 1f, SpriteEffects.None, 1f);
-	//	}
-	//}
 }

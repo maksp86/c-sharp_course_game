@@ -4,9 +4,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace JABEUP_Game.Game.Controller
 {
@@ -40,7 +37,7 @@ namespace JABEUP_Game.Game.Controller
 				{
 					MusicVolume = 1f,
 					SoundVolume = 1f,
-					KeyBindings = new Dictionary<string, Keys>() { 
+					KeyBindings = new Dictionary<string, Keys>() {
 						{ "Up", Keys.W },
 						{ "Down", Keys.S },
 						{ "Left", Keys.A },

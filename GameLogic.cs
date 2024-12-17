@@ -15,11 +15,16 @@ namespace JABEUP_Game
 		private SpriteBatch _spriteBatch;
 		private KeyboardState keyboardState;
 
-		GameStateModel _gameStateModel;
+		public static Texture2D DefaultRectangle;
+
+		GameStateController _gameStateModel;
 		GameEnvironment _environment;
 		GameMenu _gameMenu;
 
 		SaveController _saveEngine;
+
+		public static bool DebugDraw => _debugDraw;
+		private static bool _debugDraw = false;
 
 		public static readonly Rectangle BaseViewPort = new Rectangle(0, 0, 1280, 720);
 		Vector2 ScaleVector = Vector2.One;
@@ -40,19 +45,15 @@ namespace JABEUP_Game
 			MyraEnvironment.Game = this;
 
 			_saveEngine = new SaveController();
-			_gameStateModel = new GameStateModel();
-			_environment = new GameEnvironment(Services, _saveEngine);
+			_gameStateModel = new GameStateController();
+			_environment = new GameEnvironment(Services, _saveEngine, _gameStateModel);
 			_gameMenu = new GameMenu(_gameStateModel, _saveEngine);
-
-#if DEBUG
-			_gameStateModel.SetGameState(this, GameState.Game);
-#endif
 		}
 
 		private void UpdateHighScore()
 		{
-			if (_saveEngine.CurrentData.HighScore < _environment.GameScore)
-				_saveEngine.CurrentData.HighScore = _environment.GameScore;
+			if (_saveEngine.CurrentData.HighScore < _gameStateModel.Score)
+				_saveEngine.CurrentData.HighScore = _gameStateModel.Score;
 		}
 
 		private void GameLogic_Exiting(object sender, EventArgs e)
@@ -83,22 +84,17 @@ namespace JABEUP_Game
 			_environment.Initialize();
 		}
 
-#if DEBUG
-		public static Texture2D DebugRectangle;
-#endif
-
 		protected override void LoadContent()
 		{
 			base.LoadContent();
 
 			_saveEngine.Load();
+			_debugDraw = _saveEngine.CurrentData.Options.DebugDraw;
 
 			_spriteBatch = new SpriteBatch(GraphicsDevice);
 
-#if DEBUG
-			DebugRectangle = new Texture2D(GraphicsDevice, 1, 1);
-			DebugRectangle.SetData(new[] { Color.Green });
-#endif
+			DefaultRectangle = new Texture2D(GraphicsDevice, 1, 1);
+			DefaultRectangle.SetData(new[] { Color.White });
 
 			_environment.LoadContent();
 			_gameMenu.LoadContent(null);
@@ -112,7 +108,8 @@ namespace JABEUP_Game
 			{
 				case GameState.Menu:
 				case GameState.PauseMenu:
-					_gameMenu.Update(gameTime, keyboardState); break;
+				case GameState.DeadMenu:
+					_gameMenu.Update(gameTime, keyboardState, null); break;
 				case GameState.Game:
 					if (keyboardState.IsKeyDown(Keys.Escape))
 					{
@@ -131,22 +128,18 @@ namespace JABEUP_Game
 		{
 			GraphicsDevice.Clear(Color.Black);
 
-			_spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-
 			switch (_gameStateModel.GameState)
 			{
-				case GameState.PauseMenu:
 				case GameState.Menu:
+				case GameState.PauseMenu:
+				case GameState.DeadMenu:
 					_gameMenu.Draw(gameTime, _spriteBatch, ScaleVector, 0f);
 					break;
 
 				case GameState.Game:
 					_environment.Draw(gameTime, _spriteBatch, ScaleVector);
 					break;
-
 			}
-
-			_spriteBatch.End();
 
 			base.Draw(gameTime);
 		}

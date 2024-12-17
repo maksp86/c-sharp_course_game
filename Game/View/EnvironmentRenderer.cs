@@ -1,32 +1,34 @@
 ﻿using JABEUP_Game.Game.Controller;
-using JABEUP_Game.Game.Model;
 using JABEUP_Game.Game.Player;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Generic;
 
 namespace JABEUP_Game.Game.View
 {
-	public class EnvironmentRenderer
+	public class EnvironmentRenderer : IDrawableGameEntity
 	{
 		BackgroundController backgroundController;
 		public float CameraOffsetX => cameraOffsetX;
 
 		private float cameraOffsetX = 0f;
 		float currentMovement = 0;
-		Vector2 _scaleVector = Vector2.One;
 
 		ProgressBarRenderer playerHealthBar;
 
-		List<EnvironmentCollider> colliders = new List<EnvironmentCollider>();
 
 		public EnvironmentRenderer()
 		{
 			backgroundController = new BackgroundController();
 			playerHealthBar = new ProgressBarRenderer();
+		}
+
+		public void Initialize()
+		{
+			cameraOffsetX = 0f;
+			backgroundController.Initialize();
 		}
 
 		public void LoadContent(ContentManager contentManager)
@@ -45,22 +47,21 @@ namespace JABEUP_Game.Game.View
 			playerHealthBar.SetScale(1.5f);
 
 			if ((player.Position.X - CameraOffsetX) > (GameLogic.BaseViewPort.Width / 3f))
-				currentMovement = (Math.Max(40, player.Velocity.X / 3f)) * _scaleVector.X;
+				currentMovement = (Math.Max(100, player.Velocity.X / 2f));
 			else
 				currentMovement = 0;
 		}
 
-		public void Update(GameTime gameTime, KeyboardState keyboardState)
+		public void Update(GameTime gameTime, KeyboardState keyboardState, EnvironmentSafeZoneController safeZoneController)
 		{
 			cameraOffsetX += (currentMovement) * (float)gameTime.ElapsedGameTime.TotalSeconds;
 			backgroundController.Update(-currentMovement, gameTime);
 
-			playerHealthBar.Update(gameTime, keyboardState);
+			playerHealthBar.Update(gameTime, keyboardState, safeZoneController);
 		}
 
-		public void Draw(GameTime gameTime, SpriteBatch spriteBatch, Vector2 scaleVector)
+		public void Draw(GameTime gameTime, SpriteBatch spriteBatch, Vector2 scaleVector, float baseOffsetX)
 		{
-			_scaleVector = scaleVector;
 			backgroundController.Draw(spriteBatch, scaleVector);
 
 			playerHealthBar.Draw(gameTime, spriteBatch, scaleVector, cameraOffsetX);

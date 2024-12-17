@@ -16,14 +16,19 @@ namespace JABEUP_Game.Game
 	class GameEnvironment
 	{
 		ContentManager contentManager;
+		FrameCounterController fpsController;
 
-		static Vector2 _playerSpawn = new Vector2(100, 500);
-
+		static Vector2 _playerSpawn = new Vector2(100, 700);
 
 		EnvironmentRenderer environmentRenderer;
+		EnvironmentSafeZoneController safeZoneController;
+
+		GameStateController _gameStateModel;
+
 		PlayerClass player;
-		EnemyClass enemy;
-		BushClass bush;
+		TimeSpan swtichToDeadScreenTime;
+		Color screenFadeColor;
+
 		SaveController _saveController;
 
 		List<ICollaidableGameEntity> collaidableGameEntities;
@@ -31,89 +36,123 @@ namespace JABEUP_Game.Game
 		SpriteFont gameFont;
 		Vector2 scoreTextPos = new Vector2(GameLogic.BaseViewPort.Width * 0.85f, GameLogic.BaseViewPort.Height * 0.05f);
 
-		public int GameScore => (int)Math.Ceiling(environmentRenderer.CameraOffsetX / (GameLogic.BaseViewPort.Width / 3f));
-
-		public GameEnvironment(IServiceProvider serviceProvider, SaveController saveController)
+		public GameEnvironment(IServiceProvider serviceProvider, SaveController saveController, GameStateController gameState)
 		{
+			fpsController = new FrameCounterController();
 			collaidableGameEntities = new List<ICollaidableGameEntity>();
 			_saveController = saveController;
+			_gameStateModel = gameState;
 
-			enemy = new EnemyClass();
 			player = new PlayerClass(_saveController);
-			bush = new BushClass("4");
+			player.OnDead += OnEntityDead;
 
 			environmentRenderer = new EnvironmentRenderer();
+			safeZoneController = new EnvironmentSafeZoneController();
 
 			contentManager = new ContentManager(serviceProvider, "Content");
+
+			_gameStateModel.StateChanged += OnGameStateChanged;
+		}
+
+		private void OnGameStateChanged(object sender, GameStateChangedEventArgs e)
+		{
+			if ((e.oldValue == GameState.DeadMenu || e.oldValue == GameState.Menu)
+				&& e.newValue == GameState.Game)
+			{
+				Initialize();
+			}
+		}
+
+		private void OnEntityDead(object sender, EventArgs e)
+		{
+			AliveGameEntity deadEntity = (sender as AliveGameEntity);
+
+			if (deadEntity.EntityType == AliveEntityType.Mob)
+				_gameStateModel.AddEnemyScore(deadEntity);
+			else if (deadEntity.EntityType == AliveEntityType.Player)
+			{
+				swtichToDeadScreenTime = TimeSpan.FromSeconds(5);
+			}
 		}
 
 		public void Initialize()
 		{
+			screenFadeColor = Color.Black;
+			screenFadeColor.A = 0;
+
+			_gameStateModel.ClearScore();
+
+			environmentRenderer.Initialize();
+			safeZoneController.Initialize();
+
+			collaidableGameEntities.Clear();
+
 			player.Initialize(_playerSpawn);
-			enemy.Initialize(new Vector2(1000, GameLogic.BaseViewPort.Height));
-			bush.Initialize(new Vector2(1000, 620));
 
 			collaidableGameEntities.Add(player);
-			//collaidableGameEntities.Add(enemy);
-			collaidableGameEntities.Add(bush);
 
-			collaidableGameEntities.Add(new EnvironmentCollider(
-				new BoundingBox(
-					new Vector3(100, 100, 0),
-					new Vector3(500, 200, 0)
-					), ColliderType.Strong));
+			FloatingTextEntity entryText = new FloatingTextEntity(gameFont, "Hello there\nYou need to move right, okay", 1.5f);
+			entryText.Initialize(new Vector2(GameLogic.BaseViewPort.Width * 0.6f, GameLogic.BaseViewPort.Height * 0.6f));
 
-			collaidableGameEntities.Add(new EnvironmentCollider((c, gt, ks) =>
-			{
-				return new BoundingBox(
-						new Vector3(environmentRenderer.CameraOffsetX, GameLogic.BaseViewPort.Height - 10, -10),
-						new Vector3(environmentRenderer.CameraOffsetX + GameLogic.BaseViewPort.Width, GameLogic.BaseViewPort.Height + 100, 10)
-						);
-			}, ColliderType.Strong));
+			collaidableGameEntities.Add(entryText);
 
-			collaidableGameEntities.Add(new EnvironmentCollider((c, gt, ks) =>
-			{
-				return new BoundingBox(
-						new Vector3(environmentRenderer.CameraOffsetX, 0, -10),
-						new Vector3(environmentRenderer.CameraOffsetX + 10, GameLogic.BaseViewPort.Height, 10)
-						);
-			}, ColliderType.StrongPlayer));
+			entryText = new FloatingTextEntity(gameFont, "Well done!\nBe aware of zombies!", 1.5f);
+			entryText.Initialize(new Vector2(GameLogic.BaseViewPort.Width * 1.6f, GameLogic.BaseViewPort.Height * 0.6f));
+
+			collaidableGameEntities.Add(entryText);
 		}
 
 		public void SpawnEntities()
 		{
-			collaidableGameEntities.RemoveAll(e => environmentRenderer.CameraOffsetX - e.Position.X > (e.Collider.Max.X - e.Position.X) * 1.5f);
+			collaidableGameEntities.RemoveAll(e => environmentRenderer.CameraOffsetX - e.Position.X > (e.Collider.Max.X - e.Position.X) * 4f);
 
 			if (collaidableGameEntities.Count(e => e is BushClass
-			&& (e.Position.X - environmentRenderer.CameraOffsetX > (GameLogic.BaseViewPort.Width / 2))) < 1)
+			&& (e.Position.X - environmentRenderer.CameraOffsetX > (GameLogic.BaseViewPort.Width / 4))) < 1)
 			{
 				BushClass newBush = new BushClass(Random.Shared.Next(1, 5).ToString());
 				newBush.LoadContent(contentManager);
-				newBush.Initialize(new Vector2(environmentRenderer.CameraOffsetX + GameLogic.BaseViewPort.Width + Random.Shared.Next(100, 300), Random.Shared.Next(600, 721)));
+				newBush.Initialize(new Vector2(environmentRenderer.CameraOffsetX + GameLogic.BaseViewPort.Width + Random.Shared.Next(100, 300), Random.Shared.Next(480, 721)));
 				collaidableGameEntities.Add(newBush);
 			}
 
-			//if (collaidableGameEntities.Count(e => e is EnemyClass && (e.Position.X - environmentRenderer.CameraOffsetX > (GameLogic.BaseViewPort.Width / 2))) < 1)
-			//{
-			//	EnemyClass newEnemy = new EnemyClass();
-			//	newEnemy.LoadContent(contentManager);
-			//	newEnemy.Initialize(new Vector2(environmentRenderer.CameraOffsetX + GameLogic.BaseViewPort.Width + Random.Shared.Next(100, 300), Random.Shared.Next(600, 721)));
-			//	collaidableGameEntities.Add(newEnemy);
-			//}
+			if (collaidableGameEntities.Count(e => e is EnemyClass && (e.Position.X - environmentRenderer.CameraOffsetX > (GameLogic.BaseViewPort.Width / 2))) < 1)
+			{
+				EnemyClass newEnemy = new EnemyClass();
+				newEnemy.LoadContent(contentManager);
+				newEnemy.Initialize(new Vector2(environmentRenderer.CameraOffsetX + GameLogic.BaseViewPort.Width + Random.Shared.Next(100, 300), Random.Shared.Next(480, 721)));
+				newEnemy.OnDead += OnEntityDead;
+				collaidableGameEntities.Add(newEnemy);
+			}
 		}
 
 		public void Update(GameTime gameTime, KeyboardState keyboardState)
 		{
+			if (!player.IsAlive)
+			{
+				if (swtichToDeadScreenTime > TimeSpan.Zero)
+				{
+					swtichToDeadScreenTime = swtichToDeadScreenTime.Subtract(gameTime.ElapsedGameTime);
+					screenFadeColor.A = Math.Clamp((byte)((1 - swtichToDeadScreenTime.TotalSeconds / 5.0f) * 255), Byte.MinValue, Byte.MaxValue);
+				}
+				else
+					_gameStateModel.SetGameState(this, GameState.DeadMenu);
+			}
+
 			SpawnEntities();
 
-			foreach (ICollaidableGameEntity entity in collaidableGameEntities)
+			safeZoneController.Update(environmentRenderer.CameraOffsetX);
+
+			foreach (ICollaidableGameEntity entity in collaidableGameEntities
+				.Where(e => e.Position.X - environmentRenderer.CameraOffsetX > -(GameLogic.BaseViewPort.Width * 2)))
 			{
-				entity.Update(gameTime, keyboardState);
+				entity.Update(gameTime, keyboardState, safeZoneController);
 				entity.UpdateCollisions(collaidableGameEntities, gameTime);
 			}
 
 			environmentRenderer.UpdatePlayerData(player);
-			environmentRenderer.Update(gameTime, keyboardState);
+			environmentRenderer.Update(gameTime, keyboardState, safeZoneController);
+
+			_gameStateModel.UpdateScore(environmentRenderer.CameraOffsetX);
 		}
 
 		public void LoadContent()
@@ -125,41 +164,52 @@ namespace JABEUP_Game.Game
 		{
 			environmentRenderer.LoadContent(contentManager);
 			player.LoadContent(contentManager);
-			enemy.LoadContent(contentManager);
-			bush.LoadContent(contentManager);
 			gameFont = contentManager.Load<SpriteFont>("GUI/Commodore64Font");
 		}
 
 		public void Draw(GameTime gameTime, SpriteBatch spriteBatch, Vector2 scaleVector)
 		{
-			environmentRenderer.Draw(gameTime, spriteBatch, scaleVector);
+			spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+
+			environmentRenderer.Draw(gameTime, spriteBatch, scaleVector, 0);
+			safeZoneController.Draw(gameTime, spriteBatch, scaleVector, environmentRenderer.CameraOffsetX);
 
 			foreach (ICollaidableGameEntity entity in collaidableGameEntities
-				.Where(e => e.Position.X - environmentRenderer.CameraOffsetX > -(GameLogic.BaseViewPort.Width))
+				.Where(e => Math.Abs(e.Position.X - environmentRenderer.CameraOffsetX) < (GameLogic.BaseViewPort.Width))
 				.OrderBy(e => e.Position.Y))
 			{
-#if DEBUG
-				spriteBatch.Draw(
-				GameLogic.DebugRectangle,
-				new Vector2((entity.Collider.Min.X - environmentRenderer.CameraOffsetX) * scaleVector.X, (entity.Collider.Min.Y) * scaleVector.Y),
+				if (GameLogic.DebugDraw)
+				{
+					spriteBatch.Draw(
+				GameLogic.DefaultRectangle,
+				new Vector2((entity.Collider.Min.X - environmentRenderer.CameraOffsetX) * scaleVector.X, (entity.Collider.Min.Y + entity.Collider.Min.Z) * scaleVector.Y),
 				new Rectangle(0, 0,
 					(int)((entity.Collider.Max.X - entity.Collider.Min.X) * scaleVector.Y),
 					(int)((entity.Collider.Max.Y - entity.Collider.Min.Y) * scaleVector.Y)),
-				Color.CadetBlue);
-#endif
+				Color.Green);
+				}
 
 				entity.Draw(gameTime, spriteBatch, scaleVector, environmentRenderer.CameraOffsetX);
 
-				if (entity is AliveGameEntity aliveEntity && aliveEntity.IsAlive)
-				{
-
-				}
 			}
 
-			string scoreText = "Score: " + GameScore;
+			string scoreText = "Score: " + _gameStateModel.Score;
 			Vector2 scoreTextOrigin = gameFont.MeasureString(scoreText) / 2;
 
 			spriteBatch.DrawString(gameFont, scoreText, scoreTextPos * scaleVector, Color.White, 0f, scoreTextOrigin, scaleVector.X * 1.5f, SpriteEffects.None, 1f);
+
+			if (!player.IsAlive)
+			{
+				spriteBatch.Draw(GameLogic.DefaultRectangle, Vector2.Zero, new Rectangle(0, 0, GameLogic.BaseViewPort.Width, GameLogic.BaseViewPort.Height), screenFadeColor);
+			}
+
+			if (GameLogic.DebugDraw)
+			{
+				fpsController.Update(gameTime);
+				spriteBatch.DrawString(gameFont, $"{Math.Round(fpsController.AverageFramesPerSecond, 2)}FPS", Vector2.One, Color.White);
+			}
+
+			spriteBatch.End();
 		}
 	}
 }

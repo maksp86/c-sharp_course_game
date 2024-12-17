@@ -1,17 +1,14 @@
 ﻿using JABEUP_Game.Game.Controller;
 using JABEUP_Game.Game.Model;
-using JABEUP_Game.Game.Player;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace JABEUP_Game.Game
 {
-	class BushClass : ICollaidableGameEntity, IDrawableGameEntity
+	class BushClass : ICollaidableGameEntity
 	{
 		private Animation animationIdle;
 		private AnimationController animationController;
@@ -26,6 +23,8 @@ namespace JABEUP_Game.Game
 		private Vector3 position;
 
 		private string _bushType;
+
+		private bool needToCheckPosition;
 
 		public BushClass(string bushType = "1")
 		{
@@ -46,11 +45,29 @@ namespace JABEUP_Game.Game
 		{
 			animationController.PlayAnimation(animationIdle);
 			position = new Vector3(withPosition.X, withPosition.Y, 0);
-			bushCollider = new BoundingBox(position, position + new Vector3(animationIdle.FrameWidth, animationIdle.FrameHeight, animationIdle.FrameHeight / 3));
+			needToCheckPosition = true;
+			bushCollider = new BoundingBox();
+			UpdateCollider();
 		}
 
-		public void Update(GameTime gameTime, KeyboardState keyboardState)
+		private void UpdateCollider()
 		{
+			bushCollider.Min = new Vector3(position.X, position.Y - animationIdle.FrameHeight, position.Z);
+			bushCollider.Max = bushCollider.Min + new Vector3(animationIdle.FrameWidth * 1.5f, animationIdle.FrameHeight, 0);
+		}
+
+		public void Update(GameTime gameTime, KeyboardState keyboardState, EnvironmentSafeZoneController safeZoneController)
+		{
+			if (!needToCheckPosition)
+				return;
+
+			if (!safeZoneController.IsInSafeZone(bushCollider.Max) || !safeZoneController.IsInSafeZone(position))
+			{
+				position.Y += 1;
+				UpdateCollider();
+			}
+			else
+				needToCheckPosition = false;
 		}
 
 		public void UpdateCollisions(IEnumerable<ICollaidableGameEntity> collaidables, GameTime gameTime)
@@ -61,14 +78,6 @@ namespace JABEUP_Game.Game
 		{
 			Vector2 actualPos = new Vector2((position.X - cameraOffsetX) * scaleVector.X, (position.Y + position.Z) * scaleVector.Y);
 			float scale = scaleVector.Y * (position.Y / GameLogic.BaseViewPort.Height);
-
-#if DEBUG
-			//spriteBatch.Draw(
-			//	GameLogic.DebugRectangle,
-			//	new Vector2((bushCollider.Min.X - cameraOffsetX) * scaleVector.X, (bushCollider.Min.Y + bushCollider.Min.Z) * scaleVector.Y),
-			//	new Rectangle(0, 0, (int)((bushCollider.Max.X - bushCollider.Min.X) * scale), (int)((bushCollider.Max.Y - bushCollider.Min.Y) * scale)),
-			//	Color.CadetBlue);
-#endif
 
 			animationController.Draw(gameTime, spriteBatch, actualPos, SpriteEffects.None, scale);
 

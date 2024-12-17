@@ -18,7 +18,7 @@ namespace JABEUP_Game.Game.Player
 
 		public override AliveEntityType EntityType => AliveEntityType.Player;
 		public override ColliderType ColliderType => ColliderType.Strong;
-		public override int MaxHP => 500;
+		public override int MaxHP => 50;
 
 		private BoundingBox swordCollider;
 
@@ -27,6 +27,7 @@ namespace JABEUP_Game.Game.Player
 
 		private bool isDefending;
 		private bool isAttacking;
+		private bool attackHappened;
 		private TimeSpan attackEndTime;
 		private Animation attackAnimation;
 
@@ -56,14 +57,19 @@ namespace JABEUP_Game.Game.Player
 		public override void Initialize(Vector2 withPosition)
 		{
 			base.Initialize(withPosition);
+
 			isAttacking = false;
 			isDefending = false;
+			isHurt = false;
+			hurtEndTime = TimeSpan.Zero;
+			attackEndTime = TimeSpan.Zero;
+
 			animationObj.PlayAnimation(animationIdle);
 			_collider = new BoundingBox(_position, _position + new Vector3(animationIdle.FrameHeight, animationIdle.FrameHeight, animationIdle.FrameHeight / 3));
 			swordCollider = new BoundingBox(Vector3.Zero, Vector3.Zero);
 		}
 
-		public override void Update(GameTime gameTime, KeyboardState keyboardState)
+		public override void Update(GameTime gameTime, KeyboardState keyboardState, EnvironmentSafeZoneController safeZoneController)
 		{
 			if (!IsAlive)
 				return;
@@ -71,10 +77,10 @@ namespace JABEUP_Game.Game.Player
 			_handleActions(keyboardState, gameTime);
 			_handleMovement(keyboardState);
 
-			//DoPhysics(gameTime);
+			DoPhysics(gameTime, safeZoneController);
 
-			//_collider.Min = new Vector3(animationIdle.FrameWidth * 0.2f + _position.X, _position.Y, _position.Z);
-			//_collider.Max = _position + new Vector3(animationIdle.FrameWidth * 0.6f, animationIdle.FrameHeight, animationIdle.FrameHeight / 3);
+			_collider.Min = new Vector3(animationIdle.FrameWidth * 0.2f + _position.X, _position.Y - animationIdle.FrameHeight, _position.Z);
+			_collider.Max = _collider.Min + new Vector3(animationIdle.FrameWidth * 0.6f, animationIdle.FrameHeight, 0);
 
 
 			if (isHurt)
@@ -82,7 +88,7 @@ namespace JABEUP_Game.Game.Player
 				animationObj.PlayAnimation(animationHurt);
 
 				if (hurtEndTime == TimeSpan.Zero)
-					hurtEndTime = gameTime.TotalGameTime + TimeSpan.FromSeconds(animationHurt.FrameTime * animationHurt.FrameCount);
+					hurtEndTime = gameTime.TotalGameTime + TimeSpan.FromSeconds(animationHurt.FrameTime * (animationHurt.FrameCount * 2));
 
 				if (gameTime.TotalGameTime >= hurtEndTime)
 				{
@@ -103,21 +109,17 @@ namespace JABEUP_Game.Game.Player
 				}
 				else animationObj.PlayAnimation(animationJump);
 			}
+			_movement = Vector2.Zero;
+			isJumping = false;
 		}
 
 		public override void UpdateCollisions(IEnumerable<ICollaidableGameEntity> collaidables, GameTime gameTime)
 		{
-			DoPhysics(gameTime, collaidables.Where(c => c is EnvironmentCollider).Select(c => c as EnvironmentCollider));
-
-			_collider.Min = new Vector3(animationIdle.FrameWidth * 0.2f + _position.X, _position.Y - animationIdle.FrameHeight, _position.Z);
-			_collider.Max = _collider.Min + new Vector3(animationIdle.FrameWidth * 0.6f, animationIdle.FrameHeight, 0);
-			_movement = Vector2.Zero;
-			isJumping = false;
-
 			if (isAttacking)
 			{
-				if (gameTime.TotalGameTime >= attackEndTime)
+				if (!attackHappened && animationObj.FrameIndex >= (animationObj.Animation.FrameCount * 2f / 3f))
 				{
+					attackHappened = true;
 					if (flip == SpriteEffects.FlipHorizontally)
 						swordCollider = new BoundingBox(new Vector3(_collider.Min.X - animationIdle.FrameHeight / 3, _collider.Min.Y, _collider.Min.Z),
 							new Vector3(_collider.Min.X, _collider.Max.Y, _collider.Max.Z));
@@ -129,7 +131,11 @@ namespace JABEUP_Game.Game.Player
 					{
 						aliveEntity.TakeDamage(50);
 					}
+				}
+				if (gameTime.TotalGameTime >= attackEndTime)
+				{
 					isAttacking = false;
+					attackHappened = false;
 				}
 				animationObj.PlayAnimation(attackAnimation);
 			}
@@ -183,22 +189,16 @@ namespace JABEUP_Game.Game.Player
 			Vector2 actualPos = new Vector2((_position.X - cameraOffsetX) * scaleVector.X, (_position.Y + _position.Z) * scaleVector.Y);
 			float scale = scaleVector.Y * (_position.Y / GameLogic.BaseViewPort.Height);
 
-#if DEBUG
-			//spriteBatch.Draw(
-			//	GameLogic.DebugRectangle,
-			//	new Vector2((playerCollider.Min.X - cameraOffsetX) * scaleVector.X, (playerCollider.Min.Y + playerCollider.Min.Z) * scaleVector.Y),
-			//	new Rectangle(0, 0, (int)((playerCollider.Max.X - playerCollider.Min.X) * scale), (int)((playerCollider.Max.Y - playerCollider.Min.Y) * scale)),
-			//	Color.CadetBlue);
-
-			spriteBatch.Draw(
-				GameLogic.DebugRectangle,
+			if (GameLogic.DebugDraw)
+			{
+				spriteBatch.Draw(
+				GameLogic.DefaultRectangle,
 				new Vector2((swordCollider.Min.X - cameraOffsetX) * scaleVector.X, (swordCollider.Min.Y + swordCollider.Min.Z) * scaleVector.Y),
 				new Rectangle(0, 0, (int)((swordCollider.Max.X - swordCollider.Min.X) * scale), (int)((swordCollider.Max.Y - swordCollider.Min.Y) * scale)),
 				Color.Chocolate);
-#endif
+			}
 
 			animationObj.Draw(gameTime, spriteBatch, actualPos, flip, scale);
-
 		}
 
 		public override void TakeDamage(int damage)
