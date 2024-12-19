@@ -42,17 +42,17 @@ namespace JABEUP_Game.Game.Player
 			_saveController = saveController;
 		}
 
-		public void LoadContent(ContentManager content)
+		public override void LoadContent(ContentManager content)
 		{
-			animationIdle = new Animation(content.Load<Texture2D>("Knight_1/Idle"), 0.2f, true);
-			animationRun = new Animation(content.Load<Texture2D>("Knight_1/Run"), 0.2f, true);
-			animationJump = new Animation(content.Load<Texture2D>("Knight_1/Jump"), 0.2f, false);
-			animationRunAttack = new Animation(content.Load<Texture2D>("Knight_1/Run+Attack"), 0.15f, false);
-			animationAttack = new Animation(content.Load<Texture2D>("Knight_1/Attack 1"), 0.15f, false);
-			animationAttackDefend = new Animation(content.Load<Texture2D>("Knight_1/Attack 3"), 0.15f, false);
-			animationDefend = new Animation(content.Load<Texture2D>("Knight_1/Defend"), 0.2f, true);
-			animationHurt = new Animation(content.Load<Texture2D>("Knight_1/Hurt"), 0.2f, false);
-			animationDeath = new Animation(content.Load<Texture2D>("Knight_1/Dead"), 0.2f, false);
+			animationIdle = new Animation(content.Load<Texture2D>("Sprites/Knight/Idle"), 0.2f, true);
+			animationRun = new Animation(content.Load<Texture2D>("Sprites/Knight/Run"), 0.2f, true);
+			animationJump = new Animation(content.Load<Texture2D>("Sprites/Knight/Jump"), 0.2f, false);
+			animationRunAttack = new Animation(content.Load<Texture2D>("Sprites/Knight/Attack_Run"), 0.15f, false);
+			animationAttack = new Animation(content.Load<Texture2D>("Sprites/Knight/Attack"), 0.15f, false);
+			animationAttackDefend = new Animation(content.Load<Texture2D>("Sprites/Knight/Attack_Defend"), 0.15f, false);
+			animationDefend = new Animation(content.Load<Texture2D>("Sprites/Knight/Defend"), 0.2f, true);
+			animationHurt = new Animation(content.Load<Texture2D>("Sprites/Knight/Hurt"), 0.2f, false);
+			animationDeath = new Animation(content.Load<Texture2D>("Sprites/Knight/Dead"), 0.2f, false);
 		}
 
 		public override void Initialize(Vector2 withPosition)

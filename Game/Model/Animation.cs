@@ -41,6 +41,16 @@ namespace JABEUP_Game.Game.Model
 		bool isLooping;
 
 		/// <summary>
+		/// When the end of the animation is reached, should it
+		/// continue playing from the beginning?
+		/// </summary>
+		public bool IsCentered
+		{
+			get { return isCentered; }
+		}
+		bool isCentered;
+
+		/// <summary>
 		/// Gets the number of frames in the animation.
 		/// </summary>
 		public int FrameCount
@@ -69,11 +79,12 @@ namespace JABEUP_Game.Game.Model
 		/// <summary>
 		/// Constructors a new animation.
 		/// </summary>        
-		public Animation(Texture2D texture, float frameTime, bool isLooping)
+		public Animation(Texture2D texture, float frameTime, bool isLooping, bool isCentered = false)
 		{
 			this.texture = texture;
 			this.frameTime = frameTime;
 			this.isLooping = isLooping;
+			this.isCentered = isCentered;
 		}
 	}
 }

@@ -38,7 +38,7 @@ namespace JABEUP_Game.Game
 
 		public void LoadContent(ContentManager content)
 		{
-			animationIdle = new Animation(content.Load<Texture2D>("Bush/Bush1_" + _bushType), 1f, false);
+			animationIdle = new Animation(content.Load<Texture2D>("Sprites/Bush/" + _bushType), 1f, false);
 		}
 
 		public void Reset(Vector2 withPosition)

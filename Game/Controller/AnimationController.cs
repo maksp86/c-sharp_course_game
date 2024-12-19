@@ -84,7 +84,7 @@ namespace JABEUP_Game.Game.Controller
 			// Calculate the source rectangle of the current frame.
 			Rectangle source = new Rectangle(FrameIndex * Animation.FrameWidth, 0, Animation.FrameWidth, Animation.FrameHeight);
 
-			if (spriteEffects.HasFlag(SpriteEffects.FlipHorizontally))
+			if (spriteEffects.HasFlag(SpriteEffects.FlipHorizontally) && !Animation.IsCentered)
 				position.X -= Animation.Texture.Height * scale;
 
 			spriteBatch.Draw(Animation.Texture, position, source, Color.White, 0.0f, Origin, 2.0f * scale, spriteEffects, 0.1f);

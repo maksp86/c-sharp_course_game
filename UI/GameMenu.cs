@@ -171,7 +171,7 @@ namespace JABEUP_Game.UI
 			_menuLayout.optionsButton.Click += (s, e) => { _desktop.Root = _optionsLayout; };
 
 			_optionsLayout.musicVolumeSlider.Value = _saveEngine.CurrentData.Options.MusicVolume;
-			_optionsLayout.musicVolumeSlider.Value = _saveEngine.CurrentData.Options.SoundVolume;
+			_optionsLayout.soundVolumeSlider.Value = _saveEngine.CurrentData.Options.SoundVolume;
 			_optionsLayout.backButton.Click += (s, e) => { _desktop.Root = _menuLayout; };
 			_optionsLayout.saveButton.Click += (s, e) =>
 			{

@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace JABEUP_Game.Game.Enemy
 {
-	public class EnemyClass : AliveGameEntity
+	public class EnemyZombieClass : AliveGameEntity
 	{
 		private Animation animationIdle, animationRun, animationAttack, animationDeath, animationHurt;
 		private AnimationController animationObj;
@@ -34,7 +34,7 @@ namespace JABEUP_Game.Game.Enemy
 
 		private ProgressBarRenderer _healthBar;
 
-		public EnemyClass()
+		public EnemyZombieClass()
 		{
 			_velocity = Vector3.Zero;
 			_position = Vector3.Zero;
@@ -42,13 +42,13 @@ namespace JABEUP_Game.Game.Enemy
 			_healthBar = new ProgressBarRenderer();
 		}
 
-		public void LoadContent(ContentManager content)
+		public override void LoadContent(ContentManager content)
 		{
-			animationIdle = new Animation(content.Load<Texture2D>("Zombie/Idle"), 0.2f, true);
-			animationRun = new Animation(content.Load<Texture2D>("Zombie/Walk"), 0.2f, true);
-			animationAttack = new Animation(content.Load<Texture2D>("Zombie/Attack"), 0.15f, false);
-			animationDeath = new Animation(content.Load<Texture2D>("Zombie/Death"), 0.15f, false);
-			animationHurt = new Animation(content.Load<Texture2D>("Zombie/Hurt"), 0.1f, false);
+			animationIdle = new Animation(content.Load<Texture2D>("Sprites/Zombie/Idle"), 0.2f, true);
+			animationRun = new Animation(content.Load<Texture2D>("Sprites/Zombie/Walk"), 0.2f, true);
+			animationAttack = new Animation(content.Load<Texture2D>("Sprites/Zombie/Attack"), 0.15f, false);
+			animationDeath = new Animation(content.Load<Texture2D>("Sprites/Zombie/Death"), 0.15f, false);
+			animationHurt = new Animation(content.Load<Texture2D>("Sprites/Zombie/Hurt"), 0.1f, false);
 			_healthBar.LoadContent(content);
 		}
 

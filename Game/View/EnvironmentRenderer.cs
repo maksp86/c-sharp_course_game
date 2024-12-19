@@ -33,11 +33,11 @@ namespace JABEUP_Game.Game.View
 
 		public void LoadContent(ContentManager contentManager)
 		{
-			backgroundController.AddLayer(new Layer(contentManager.Load<Texture2D>("Background_Mountains/1/1"), 0.01f, 0.0f));
-			backgroundController.AddLayer(new Layer(contentManager.Load<Texture2D>("Background_Mountains/1/2"), 0.02f, 0.2f, -50.0f));
-			backgroundController.AddLayer(new Layer(contentManager.Load<Texture2D>("Background_Mountains/1/3"), 0.03f, 0.5f));
-			backgroundController.AddLayer(new Layer(contentManager.Load<Texture2D>("Background_Mountains/1/4"), 0.04f, 0.2f));
-			backgroundController.AddLayer(new Layer(contentManager.Load<Texture2D>("Background_Mountains/1/5"), 0.05f, 1.0f));
+			backgroundController.AddLayer(new Layer(contentManager.Load<Texture2D>("Sprites/Background_Mountains/1"), 0.01f, 0.0f));
+			backgroundController.AddLayer(new Layer(contentManager.Load<Texture2D>("Sprites/Background_Mountains/2"), 0.02f, 0.2f, -50.0f));
+			backgroundController.AddLayer(new Layer(contentManager.Load<Texture2D>("Sprites/Background_Mountains/3"), 0.03f, 0.5f));
+			backgroundController.AddLayer(new Layer(contentManager.Load<Texture2D>("Sprites/Background_Mountains/4"), 0.04f, 0.2f));
+			backgroundController.AddLayer(new Layer(contentManager.Load<Texture2D>("Sprites/Background_Mountains/5"), 0.05f, 1.0f));
 			playerHealthBar.LoadContent(contentManager);
 		}
 

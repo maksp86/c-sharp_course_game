@@ -35,8 +35,8 @@ namespace JABEUP_Game.Game.Controller
 			{
 				Options = new Options()
 				{
-					MusicVolume = 1f,
-					SoundVolume = 1f,
+					MusicVolume = 50f,
+					SoundVolume = 50f,
 					KeyBindings = new Dictionary<string, Keys>() {
 						{ "Up", Keys.W },
 						{ "Down", Keys.S },

@@ -111,26 +111,43 @@ namespace JABEUP_Game.Game
 			collaidableGameEntities.Add(entryText);
 		}
 
+		private int _spawnTickTime = 0;
+
 		public void SpawnEntities()
 		{
+			if (++_spawnTickTime < 10)
+				return;
+			_spawnTickTime = 0;
+
 			collaidableGameEntities.RemoveAll(e => environmentRenderer.CameraOffsetX - e.Position.X > (e.Collider.Max.X - e.Position.X) * 4f);
 
 			if (collaidableGameEntities.Count(e => e is BushClass
 			&& (e.Position.X - environmentRenderer.CameraOffsetX > (GameLogic.BaseViewPort.Width / 4))) < 1)
 			{
-				BushClass newBush = new BushClass(Random.Shared.Next(1, 5).ToString());
-				newBush.LoadContent(contentManager);
-				newBush.Initialize(new Vector2(environmentRenderer.CameraOffsetX + GameLogic.BaseViewPort.Width + Random.Shared.Next(100, 300), Random.Shared.Next(480, 721)));
-				collaidableGameEntities.Add(newBush);
+				for (int i = 0; i < Random.Shared.Next(1,4); i++)
+				{
+					BushClass newBush = new BushClass(Random.Shared.Next(1, 5).ToString());
+					newBush.LoadContent(contentManager);
+					newBush.Initialize(new Vector2(environmentRenderer.CameraOffsetX + GameLogic.BaseViewPort.Width + Random.Shared.Next(100, GameLogic.BaseViewPort.Width), Random.Shared.Next(480, 721)));
+					collaidableGameEntities.Add(newBush);
+				}
 			}
 
-			if (collaidableGameEntities.Count(e => e is EnemyClass && (e.Position.X - environmentRenderer.CameraOffsetX > (GameLogic.BaseViewPort.Width / 2))) < 1)
+			if (collaidableGameEntities.Count(e => e is AliveGameEntity entity && entity.EntityType == AliveEntityType.Mob && (e.Position.X - environmentRenderer.CameraOffsetX > (GameLogic.BaseViewPort.Width / 2))) < 1)
 			{
-				EnemyClass newEnemy = new EnemyClass();
-				newEnemy.LoadContent(contentManager);
-				newEnemy.Initialize(new Vector2(environmentRenderer.CameraOffsetX + GameLogic.BaseViewPort.Width + Random.Shared.Next(100, 300), Random.Shared.Next(480, 721)));
-				newEnemy.OnDead += OnEntityDead;
-				collaidableGameEntities.Add(newEnemy);
+				for (int i = 0; i < Random.Shared.Next(3); i++)
+				{
+					AliveGameEntity newEnemy;
+					if (Random.Shared.Next(2) == 0)
+						newEnemy = new EnemyZombieClass();
+					else
+						newEnemy = new EnemySlimeClass();
+
+					newEnemy.LoadContent(contentManager);
+					newEnemy.Initialize(new Vector2(environmentRenderer.CameraOffsetX + GameLogic.BaseViewPort.Width + Random.Shared.Next(100, GameLogic.BaseViewPort.Width), Random.Shared.Next(480, 721)));
+					newEnemy.OnDead += OnEntityDead;
+					collaidableGameEntities.Add(newEnemy);
+				}
 			}
 		}
 
@@ -152,7 +169,7 @@ namespace JABEUP_Game.Game
 			safeZoneController.Update(environmentRenderer.CameraOffsetX);
 
 			foreach (ICollaidableGameEntity entity in collaidableGameEntities
-				.Where(e => e.Position.X - environmentRenderer.CameraOffsetX > -(GameLogic.BaseViewPort.Width * 2)))
+				.Where(e => Math.Abs(e.Position.X - environmentRenderer.CameraOffsetX) > -(GameLogic.BaseViewPort.Width * 1.5)))
 			{
 				entity.Update(gameTime, keyboardState, safeZoneController);
 				entity.UpdateCollisions(collaidableGameEntities, gameTime);
