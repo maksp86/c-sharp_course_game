@@ -105,10 +105,12 @@ namespace JABEUP_Game.Game
 
 			collaidableGameEntities.Add(entryText);
 
-			entryText = new FloatingTextEntity(gameFont, "Well done!\nBe aware of zombies!", 1.5f);
+			entryText = new FloatingTextEntity(gameFont, "Well done!\nBe aware of monsters!", 1.5f);
 			entryText.Initialize(new Vector2(GameLogic.BaseViewPort.Width * 1.6f, GameLogic.BaseViewPort.Height * 0.6f));
 
 			collaidableGameEntities.Add(entryText);
+
+			_soundController.StopSound(SoundController.SoundChannels.Music);
 		}
 
 		private int _spawnTickTime = 0;
@@ -227,7 +229,7 @@ namespace JABEUP_Game.Game
 
 			if (!player.IsAlive)
 			{
-				spriteBatch.Draw(GameLogic.DefaultRectangle, Vector2.Zero, new Rectangle(0, 0, GameLogic.BaseViewPort.Width, GameLogic.BaseViewPort.Height), screenFadeColor);
+				spriteBatch.Draw(GameLogic.DefaultRectangle, Vector2.Zero, new Rectangle(0, 0, (int)(GameLogic.BaseViewPort.Width * scaleVector.X), (int)(GameLogic.BaseViewPort.Height * scaleVector.Y)), screenFadeColor);
 			}
 
 			if (GameLogic.DebugDraw)
