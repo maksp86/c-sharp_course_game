@@ -149,8 +149,10 @@ namespace JABEUP_Game.Game.Model
 			if (_position.Z > 0)
 				_position.Z = 0;
 
-			if (_position.Y > 720)
-				_position.Y = 720;
+			if (EntityType == AliveEntityType.Player && (!safeZoneController.IsOnScreen(_position)))
+			{
+				_position.X = previousPosition.X;
+			}
 
 			if (!safeZoneController.IsInSafeZone(Position) || (EntityType == AliveEntityType.Player && !safeZoneController.IsInSafeZone(Collider.Max)))
 			{
@@ -158,37 +160,8 @@ namespace JABEUP_Game.Game.Model
 				_position.Y = previousPosition.Y + 2;
 			}
 
-			//bool InInverseCollision = false;
-
-			//foreach (var collider in environmentColliders)
-			//{
-			//	if (collider.ColliderType == ColliderType.InverseStrongPlayer && EntityType != AliveEntityType.Player)
-			//		continue;
-
-			//	switch (collider.ColliderType)
-			//	{
-			//		case ColliderType.InverseStrong:
-			//		case ColliderType.InverseStrongPlayer:
-			//			if (!InInverseCollision)
-			//				InInverseCollision = collider.Collider.Contains(new Vector3(_position.X, _position.Y, 0)) == ContainmentType.Contains;
-			//			break;
-			//		case ColliderType.Strong:
-			//		case ColliderType.StrongPlayer:
-			//			if (collider.Collider.Contains(new Vector3(_position.X, _position.Y, 0)) == ContainmentType.Contains)
-			//			{
-			//				_position = previousPosition;
-			//				return;
-			//			}
-			//			break;
-			//	}
-			//}
-
-			//if (!InInverseCollision)
-			//	_position = previousPosition;
-
-			//else if (_position.Y < 480)
-			//	_position.Y = 480;
-
+			if (_position.Y > 720)
+				_position.Y = 720;
 		}
 	}
 }

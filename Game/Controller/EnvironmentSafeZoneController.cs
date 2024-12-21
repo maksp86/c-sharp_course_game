@@ -35,9 +35,11 @@ namespace JABEUP_Game.Game.Controller
 		}
 
 		private long lastUpdatedOffset = 0;
+		private float lastOffset = 0;
 
 		public void Update(float cameraOffsetX)
 		{
+			lastOffset = cameraOffsetX;
 			if (cameraOffsetX >= (_safeZonePolygons[1].OffsetX) && (long)cameraOffsetX != lastUpdatedOffset)
 			{
 				lastUpdatedOffset = (long)cameraOffsetX;
@@ -45,6 +47,11 @@ namespace JABEUP_Game.Game.Controller
 				_safeZonePolygons.Add(new SafeZonePolygon(points, _safeZonePolygons[0].OffsetX + GameLogic.BaseViewPort.Width));
 
 			}
+		}
+
+		public bool IsOnScreen(Vector3 position)
+		{
+			return (position.X >= lastOffset && position.X <= lastOffset + GameLogic.BaseViewPort.Width);
 		}
 
 		public bool IsInSafeZone(Vector3 position)

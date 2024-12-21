@@ -166,7 +166,7 @@ namespace JABEUP_Game.Game.Player
 				attackEndTime = gameTime.TotalGameTime + TimeSpan.FromSeconds(attackAnimation.FrameTime * attackAnimation.FrameCount);
 			}
 
-			isDefending = !isJumping && keyboardState.IsKeyDown(Keys.LeftShift);
+			isDefending = !isJumping && keyboardState.IsKeyDown(_saveController.CurrentData.Options.KeyBindings["Defend"]);
 		}
 
 		private void _handleMovement(KeyboardState keyboardState)

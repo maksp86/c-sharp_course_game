@@ -18,7 +18,7 @@ namespace JABEUP_Game.UI
 {
 	public class GameMenu : IDrawableGameEntity
 	{
-		private string[] randomTexts = new string[] { "Now with sound!", "Better than Minecraft!", "As seen on TikTok!", "Family frienly!", "Beat`em up!" };
+		private string[] randomTexts = new string[] { "Now with sound!", "Better than Minecraft!", "As seen on TikTok!", "Family frienly!", "Beat`em up!", "Also try NFT!", "Also try Terraria!" };
 
 		private MenuLayout _menuLayout;
 		private OptionsLayout _optionsLayout;
